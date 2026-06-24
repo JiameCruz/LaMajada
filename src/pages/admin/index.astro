@@ -1,0 +1,43 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { requireAdmin } from '../../lib/admin/auth';
+
+const supabase = Astro.locals.supabase;
+const session = await requireAdmin(supabase);
+
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+
+const { admin } = session;
+
+const [menuCount, promoCount] = await Promise.all([
+  supabase.from('menu_items').select('*', { count: 'exact', head: true }),
+  supabase.from('promociones').select('*', { count: 'exact', head: true }),
+]);
+---
+
+<AdminLayout
+  title="Inicio"
+  subtitle="Gestiona el contenido visible en el sitio."
+  currentNav="dashboard"
+  adminName={admin.nombre}
+  adminEmail={admin.email}
+>
+  <div class="admin-stats">
+    <div class="admin-stat">
+      <p class="admin-stat-value">{menuCount.count ?? 0}</p>
+      <p class="admin-stat-label">Platillos y bebidas</p>
+    </div>
+    <div class="admin-stat">
+      <p class="admin-stat-value">{promoCount.count ?? 0}</p>
+      <p class="admin-stat-label">Promociones</p>
+    </div>
+  </div>
+
+  <div class="admin-actions">
+    <a href="/admin/menu/nuevo" class="admin-btn admin-btn--primary">Agregar al menú</a>
+    <a href="/admin/promociones/nueva" class="admin-btn admin-btn--ghost">Nueva promoción</a>
+    <a href="/" class="admin-btn admin-btn--ghost">Ver sitio público</a>
+  </div>
+</AdminLayout>

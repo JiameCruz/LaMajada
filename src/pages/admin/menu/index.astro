@@ -1,0 +1,155 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { requireAdmin } from '../../../lib/admin/auth';
+import { formatPrice } from '../../../lib/admin/upload';
+
+const supabase = Astro.locals.supabase;
+const session = await requireAdmin(supabase);
+
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+
+const { admin } = session;
+const success = Astro.url.searchParams.get('success');
+const categoriaFilter = Astro.url.searchParams.get('categoria');
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const action = formData.get('action');
+  const id = String(formData.get('id') ?? '');
+
+  if (action === 'toggle' && id) {
+    const activo = formData.get('activo') === 'true';
+    await supabase.from('menu_items').update({ activo: !activo }).eq('id', id);
+    return Astro.redirect('/admin/menu?success=updated');
+  }
+
+  if (action === 'delete' && id) {
+    await supabase.from('menu_items').delete().eq('id', id);
+    return Astro.redirect('/admin/menu?success=deleted');
+  }
+}
+
+let query = supabase.from('menu_items').select('*').order('categoria').order('orden');
+
+if (categoriaFilter === 'platos' || categoriaFilter === 'bebidas') {
+  query = query.eq('categoria', categoriaFilter);
+}
+
+const { data: items } = await query;
+---
+
+<AdminLayout
+  title="Menú"
+  subtitle="Platillos y bebidas visibles en la carta del sitio."
+  currentNav="menu"
+  adminName={admin.nombre}
+  adminEmail={admin.email}
+>
+  <a slot="actions" href="/admin/menu/nuevo" class="admin-btn admin-btn--primary">
+    Agregar ítem
+  </a>
+
+  {
+    success && (
+      <div class="admin-alert admin-alert--success" role="status">
+        {success === 'created' && 'Ítem creado correctamente.'}
+        {success === 'updated' && 'Ítem actualizado.'}
+        {success === 'deleted' && 'Ítem eliminado.'}
+      </div>
+    )
+  }
+
+  <div class="admin-actions" style="margin-bottom: 1rem;">
+    <a
+      href="/admin/menu"
+      class={`admin-btn admin-btn--ghost admin-btn--small ${!categoriaFilter ? 'admin-btn--primary' : ''}`}
+    >
+      Todos
+    </a>
+    <a
+      href="/admin/menu?categoria=platos"
+      class={`admin-btn admin-btn--ghost admin-btn--small ${categoriaFilter === 'platos' ? 'admin-btn--primary' : ''}`}
+    >
+      Platos
+    </a>
+    <a
+      href="/admin/menu?categoria=bebidas"
+      class={`admin-btn admin-btn--ghost admin-btn--small ${categoriaFilter === 'bebidas' ? 'admin-btn--primary' : ''}`}
+    >
+      Bebidas
+    </a>
+  </div>
+
+  {
+    !items?.length ? (
+      <div class="admin-empty">
+        <p>Aún no hay ítems en el menú.</p>
+        <a href="/admin/menu/nuevo" class="admin-btn admin-btn--primary">
+          Agregar el primero
+        </a>
+      </div>
+    ) : (
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Imagen</th>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr>
+                <td>
+                  <img class="admin-table-thumb" src={item.imagen} alt="" width="48" height="48" />
+                </td>
+                <td>{item.nombre}</td>
+                <td>{item.categoria === 'platos' ? 'Platos' : 'Bebidas'}</td>
+                <td>{formatPrice(Number(item.precio))}</td>
+                <td>
+                  <span
+                    class={`admin-badge ${item.activo ? 'admin-badge--active' : 'admin-badge--inactive'}`}
+                  >
+                    {item.activo ? 'Activo' : 'Oculto'}
+                  </span>
+                </td>
+                <td>
+                  <div class="admin-actions">
+                    <a href={`/admin/menu/${item.id}`} class="admin-btn admin-btn--ghost admin-btn--small">
+                      Editar
+                    </a>
+                    <form method="POST" style="display:inline;">
+                      <input type="hidden" name="action" value="toggle" />
+                      <input type="hidden" name="id" value={item.id} />
+                      <input type="hidden" name="activo" value={String(item.activo)} />
+                      <button type="submit" class="admin-btn admin-btn--ghost admin-btn--small">
+                        {item.activo ? 'Ocultar' : 'Mostrar'}
+                      </button>
+                    </form>
+                    <form method="POST" style="display:inline;">
+                      <input type="hidden" name="action" value="delete" />
+                      <input type="hidden" name="id" value={item.id} />
+                      <button
+                        type="submit"
+                        class="admin-btn admin-btn--danger admin-btn--small"
+                        onclick="return confirm('¿Eliminar este ítem permanentemente?')"
+                      >
+                        Eliminar
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+</AdminLayout>

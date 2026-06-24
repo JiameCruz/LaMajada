@@ -1,0 +1,134 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { requireAdmin } from '../../../lib/admin/auth';
+import { uploadImage } from '../../../lib/admin/upload';
+
+const supabase = Astro.locals.supabase;
+const session = await requireAdmin(supabase);
+
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+
+const { admin } = session;
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/admin/promociones');
+}
+
+const { data: promo, error } = await supabase
+  .from('promociones')
+  .select('*')
+  .eq('id', id)
+  .maybeSingle();
+
+if (error || !promo) {
+  return Astro.redirect('/admin/promociones');
+}
+
+let formError = '';
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const descripcion = String(formData.get('descripcion') ?? '').trim();
+  const alt_text = String(formData.get('alt_text') ?? '').trim();
+  const orden = Number(formData.get('orden') ?? 0);
+  const activo = formData.get('activo') === 'on';
+  const imagenUrl = String(formData.get('imagen_url') ?? '').trim();
+  const imagenFile = formData.get('imagen_file');
+
+  if (!descripcion) {
+    formError = 'La descripción es obligatoria.';
+  } else {
+    let imagen = imagenUrl || promo.imagen;
+
+    if (imagenFile instanceof File && imagenFile.size > 0) {
+      const { url, error: uploadError } = await uploadImage(supabase, 'promo-images', imagenFile);
+      if (uploadError || !url) {
+        formError = uploadError ?? 'No se pudo subir la imagen.';
+      } else {
+        imagen = url;
+      }
+    }
+
+    if (!formError) {
+      const { error: updateError } = await supabase
+        .from('promociones')
+        .update({
+          descripcion,
+          alt_text: alt_text || 'Promoción de La Majada',
+          orden: Number.isFinite(orden) ? orden : 0,
+          activo,
+          imagen,
+        })
+        .eq('id', id);
+
+      if (updateError) {
+        formError = 'No se pudo actualizar la promoción.';
+        console.error(updateError);
+      } else {
+        return Astro.redirect('/admin/promociones?success=updated');
+      }
+    }
+  }
+}
+---
+
+<AdminLayout
+  title="Editar promoción"
+  subtitle="Actualiza la oferta visible en el sitio."
+  currentNav="promociones"
+  adminName={admin.nombre}
+  adminEmail={admin.email}
+>
+  {
+    formError && (
+      <div class="admin-alert admin-alert--error" role="alert">
+        {formError}
+      </div>
+    )
+  }
+
+  <form class="admin-form" method="POST" enctype="multipart/form-data">
+    <div class="admin-field">
+      <label for="descripcion">Descripción</label>
+      <textarea id="descripcion" name="descripcion" required>{promo.descripcion}</textarea>
+    </div>
+
+    <div class="admin-field">
+      <label for="orden">Orden</label>
+      <input id="orden" name="orden" type="number" min="0" value={promo.orden} />
+    </div>
+
+    <div class="admin-field">
+      <label for="alt_text">Texto alternativo</label>
+      <input id="alt_text" name="alt_text" type="text" value={promo.alt_text ?? ''} />
+    </div>
+
+    <label class="admin-checkbox">
+      <input type="checkbox" name="activo" checked={promo.activo} />
+      Visible en el sitio
+    </label>
+
+    <div class="admin-field">
+      <label>Imagen actual</label>
+      <img class="admin-table-thumb" src={promo.imagen} alt="" width="80" height="80" />
+    </div>
+
+    <div class="admin-field">
+      <label for="imagen_file">Nueva imagen (archivo)</label>
+      <input id="imagen_file" name="imagen_file" type="file" accept="image/*" />
+    </div>
+
+    <div class="admin-field">
+      <label for="imagen_url">URL de imagen</label>
+      <input id="imagen_url" name="imagen_url" type="text" value={promo.imagen} />
+    </div>
+
+    <div class="admin-form-actions">
+      <button type="submit" class="admin-btn admin-btn--primary">Guardar cambios</button>
+      <a href="/admin/promociones" class="admin-btn admin-btn--ghost">Cancelar</a>
+    </div>
+  </form>
+</AdminLayout>

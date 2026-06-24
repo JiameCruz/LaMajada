@@ -1,0 +1,45 @@
+---
+import type { PromoDisplay } from '../types/content';
+
+interface Props {
+  promociones: PromoDisplay[];
+}
+
+const { promociones } = Astro.props;
+---
+
+<section class="promos" id="promociones" aria-labelledby="promos-title">
+  <div class="promos-inner">
+    <header class="promos-header">
+      <h2 id="promos-title" class="promos-title">Promociones</h2>
+      <p class="promos-intro">
+        Ofertas de la casa para que vengas con calma — buen precio, buen ambiente y sin letra
+        chica.
+      </p>
+    </header>
+
+    <ul class="promos-grid">
+      {
+        promociones.map((promo) => (
+          <li>
+            <article class="promo-card">
+              <figure class="promo-media">
+                <img
+                  src={promo.image}
+                  alt={promo.alt}
+                  width="640"
+                  height="400"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+              <div class="promo-body">
+                <p class="promo-note">{promo.description}</p>
+              </div>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

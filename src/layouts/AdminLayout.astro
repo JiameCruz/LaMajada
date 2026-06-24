@@ -1,0 +1,94 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  currentNav?: 'dashboard' | 'menu' | 'promociones';
+  adminName?: string;
+  adminEmail?: string;
+}
+
+const { title, subtitle, currentNav, adminName, adminEmail } = Astro.props;
+
+import '../styles/tokens.css';
+import '../styles/global.css';
+import '../styles/admin.css';
+---
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} — Admin La Majada</title>
+    <link rel="icon" href="/Image/ImageAbout.jpg" type="image/jpeg" />
+    <link rel="apple-touch-icon" href="/Image/ImageAbout.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Source+Sans+3:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <p class="admin-brand">
+          La Majada
+          <span>Panel de administración</span>
+        </p>
+
+        <nav aria-label="Administración">
+          <ul class="admin-nav">
+            <li>
+              <a href="/admin" aria-current={currentNav === 'dashboard' ? 'page' : undefined}>
+                Inicio
+              </a>
+            </li>
+            <li>
+              <a href="/admin/menu" aria-current={currentNav === 'menu' ? 'page' : undefined}>
+                Menú
+              </a>
+            </li>
+            <li>
+              <a
+                href="/admin/promociones"
+                aria-current={currentNav === 'promociones' ? 'page' : undefined}
+              >
+                Promociones
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="admin-sidebar-footer">
+          {
+            adminName && (
+              <p class="admin-user">
+                {adminName}
+                <br />
+                {adminEmail}
+              </p>
+            )
+          }
+          <form method="POST" action="/api/admin/logout">
+            <button type="submit" class="admin-btn admin-btn--ghost admin-btn--small">
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-page-header">
+          <div>
+            <h1 class="admin-page-title">{title}</h1>
+            {subtitle && <p class="admin-page-subtitle">{subtitle}</p>}
+          </div>
+          <slot name="actions" />
+        </header>
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>

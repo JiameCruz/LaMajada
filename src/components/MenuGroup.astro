@@ -1,0 +1,43 @@
+---
+import type { MenuItemDisplay } from '../types/content';
+import { formatPrice } from '../lib/admin/upload';
+
+interface Props {
+  title: string;
+  items: MenuItemDisplay[];
+  gridClass?: string;
+}
+
+const { title, items, gridClass = '' } = Astro.props;
+---
+
+<div class="menu-group">
+  <h3 class="menu-group-title">{title}</h3>
+  <ul class={`menu-grid ${gridClass}`.trim()}>
+    {
+      items.map((item) => (
+        <li>
+          <article class="menu-item">
+            <figure class="menu-media">
+              <img
+                src={item.image}
+                alt={item.alt}
+                width="640"
+                height="480"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+            <div class="menu-body">
+              <div class="menu-name-row">
+                <h4 class="menu-name">{item.name}</h4>
+                <p class="menu-price">{formatPrice(item.price)}</p>
+              </div>
+              <p class="menu-desc">{item.description}</p>
+            </div>
+          </article>
+        </li>
+      ))
+    }
+  </ul>
+</div>

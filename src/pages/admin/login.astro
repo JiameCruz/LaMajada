@@ -1,0 +1,114 @@
+---
+import { createSupabaseServerClient } from '../../lib/supabase/server';
+import '../../styles/tokens.css';
+import '../../styles/global.css';
+import '../../styles/admin.css';
+
+const supabase = createSupabaseServerClient(Astro.cookies);
+const errorCode = Astro.url.searchParams.get('error');
+let formError = '';
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const email = String(formData.get('email') ?? '').trim();
+  const password = String(formData.get('password') ?? '');
+
+  if (!email || !password) {
+    formError = 'Ingresa correo y contraseña.';
+  } else {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      formError = 'Correo o contraseña incorrectos.';
+    } else if (data.user) {
+      const { data: admin } = await supabase
+        .from('admins')
+        .select('id')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (!admin) {
+        const { count } = await supabase
+          .from('admins')
+          .select('*', { count: 'exact', head: true });
+
+        if (count === 0) {
+          const { error: bootstrapError } = await supabase.from('admins').insert({
+            id: data.user.id,
+            nombre: data.user.user_metadata?.nombre ?? 'Administrador',
+            email,
+          });
+
+          if (bootstrapError) {
+            await supabase.auth.signOut();
+            formError = 'No tienes permisos de administrador.';
+          } else {
+            return Astro.redirect('/admin');
+          }
+        } else {
+          await supabase.auth.signOut();
+          formError = 'No tienes permisos de administrador.';
+        }
+      } else {
+        return Astro.redirect('/admin');
+      }
+    }
+  }
+}
+
+const errorMessages: Record<string, string> = {
+  'no-admin': 'Tu cuenta no tiene permisos de administrador.',
+};
+
+const pageError = errorCode ? (errorMessages[errorCode] ?? 'No se pudo iniciar sesión.') : '';
+---
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Iniciar sesión — Admin La Majada</title>
+    <link rel="icon" href="/Image/ImageAbout.jpg" type="image/jpeg" />
+    <link rel="apple-touch-icon" href="/Image/ImageAbout.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Source+Sans+3:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="admin-login-page">
+    <div class="admin-login-card">
+      <h1>La Majada</h1>
+      <p>Accede al panel para editar la carta y las promociones.</p>
+
+      {(formError || pageError) && (
+        <div class="admin-alert admin-alert--error" role="alert">
+          {formError || pageError}
+        </div>
+      )}
+
+      <form class="admin-form" method="POST">
+        <div class="admin-field">
+          <label for="email">Correo</label>
+          <input id="email" name="email" type="email" autocomplete="username" required />
+        </div>
+        <div class="admin-field">
+          <label for="password">Contraseña</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn admin-btn--primary">Entrar</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

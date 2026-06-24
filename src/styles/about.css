@@ -1,0 +1,109 @@
+/* ── About ── */
+
+.about {
+  padding-block: var(--space-2xl);
+  background: var(--color-surface);
+}
+
+.about-inner {
+  width: var(--container);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .about-inner {
+    grid-template-columns: minmax(240px, 0.85fr) 1.15fr;
+    gap: clamp(2.5rem, 6vw, 5rem);
+  }
+}
+
+.about-visual {
+  display: flex;
+  justify-content: center;
+}
+
+.about-portrait {
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 1;
+}
+
+.about-portrait-ring {
+  position: absolute;
+  inset: -0.65rem;
+  border-radius: 50%;
+  border: 1px solid oklch(0.52 0.135 38 / 0.28);
+  pointer-events: none;
+  transition: transform var(--duration-medium) var(--ease-out-expo);
+}
+
+.about-portrait:hover .about-portrait-ring,
+.about-portrait:focus-within .about-portrait-ring {
+  transform: rotate(8deg) scale(1.02);
+}
+
+.about-portrait img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  box-shadow:
+    0 24px 48px oklch(0.22 0.015 35 / 0.12),
+    0 4px 12px oklch(0.22 0.015 35 / 0.06);
+}
+
+.about-copy {
+  max-width: 38rem;
+}
+
+.about-title {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw + 0.75rem, 3rem);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+.about-location {
+  display: block;
+  margin-bottom: var(--space-lg);
+  font-size: var(--text-label);
+  font-weight: 500;
+  color: var(--color-accent);
+}
+
+.about-body {
+  margin: 0 0 var(--space-md);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--color-ink);
+  text-wrap: pretty;
+  max-width: 58ch;
+}
+
+.about-body:last-of-type {
+  margin-bottom: 0;
+}
+
+.about-body strong {
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-portrait-ring {
+    transition: none;
+  }
+
+  .about-portrait:hover .about-portrait-ring,
+  .about-portrait:focus-within .about-portrait-ring {
+    transform: none;
+  }
+}

@@ -1,0 +1,26 @@
+---
+import MenuGroup from './MenuGroup.astro';
+import type { MenuItemDisplay } from '../types/content';
+
+interface Props {
+  platos: MenuItemDisplay[];
+  bebidas: MenuItemDisplay[];
+}
+
+const { platos, bebidas } = Astro.props;
+---
+
+<section class="menu" id="carta" aria-labelledby="menu-title">
+  <div class="menu-inner">
+    <header class="menu-header">
+      <h2 id="menu-title" class="menu-title">La carta</h2>
+      <p class="menu-intro">
+        Cocina del norte, porciones generosas y sabor de casa. Esto es lo que sale de nuestra
+        cocina — sin rodeos.
+      </p>
+    </header>
+
+    <MenuGroup title="Platos" items={platos} />
+    <MenuGroup title="Bebidas" items={bebidas} gridClass="menu-grid--drinks" />
+  </div>
+</section>

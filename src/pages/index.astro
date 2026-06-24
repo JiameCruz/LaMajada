@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import Menu from '../components/Menu.astro';
+import Promos from '../components/Promos.astro';
+import Location from '../components/Location.astro';
+import Footer from '../components/Footer.astro';
+import { fetchPublicContent } from '../lib/data/fetch-content';
+
+const supabase = Astro.locals.supabase;
+const { platos, bebidas, promociones } = await fetchPublicContent(supabase);
+---
+
+<BaseLayout>
+  <Header />
+  <main>
+    <Hero />
+    <About />
+    <Menu platos={platos} bebidas={bebidas} />
+    <Promos promociones={promociones} />
+    <Location />
+  </main>
+  <Footer />
+</BaseLayout>
