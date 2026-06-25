@@ -1,10 +1,15 @@
+---
+import { resolveImageSrc } from '../lib/images';
+
+const aboutImage = resolveImageSrc('/Image/ImageAbout.jpg');
+---
 <section class="about" id="nosotros" aria-labelledby="about-title">
   <div class="about-inner">
     <figure class="about-visual">
       <div class="about-portrait">
         <span class="about-portrait-ring" aria-hidden="true"></span>
         <img
-          src="/Image/ImageAbout.jpg"
+          src={aboutImage}
           alt="Interior acogedor de La Majada, mesas compartidas y luz cálida de bar de barrio"
           width="640"
           height="640"

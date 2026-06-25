@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { bebidas, platos, promociones as staticPromos } from '../../data/menu';
+import { resolveImageSrc } from '../images';
 import type { Database } from '../supabase/types';
 import type { MenuItemDisplay, PromoDisplay } from '../../types/content';
 
@@ -8,7 +9,7 @@ function mapMenuItem(row: Database['public']['Tables']['menu_items']['Row']): Me
     id: row.id,
     name: row.nombre,
     description: row.descripcion,
-    image: row.imagen,
+    image: resolveImageSrc(row.imagen),
     alt: row.alt_text ?? row.nombre,
     price: Number(row.precio),
   };
@@ -17,7 +18,7 @@ function mapMenuItem(row: Database['public']['Tables']['menu_items']['Row']): Me
 function mapPromo(row: Database['public']['Tables']['promociones']['Row']): PromoDisplay {
   return {
     id: row.id,
-    image: row.imagen,
+    image: resolveImageSrc(row.imagen),
     description: row.descripcion,
     alt: row.alt_text ?? 'Promoción de La Majada',
   };
@@ -27,7 +28,7 @@ function staticFallback() {
   const toMenu = (item: (typeof platos)[number], price: number): MenuItemDisplay => ({
     name: item.name,
     description: item.description,
-    image: item.image,
+    image: resolveImageSrc(item.image),
     alt: item.alt,
     price,
   });
@@ -36,7 +37,7 @@ function staticFallback() {
     platos: platos.map((item, i) => toMenu(item, [289, 249, 189, 169, 89, 69][i] ?? 99)),
     bebidas: bebidas.map((item, i) => toMenu(item, [45, 85][i] ?? 45)),
     promociones: staticPromos.map((promo) => ({
-      image: promo.image,
+      image: resolveImageSrc(promo.image),
       description: `${promo.schedule} — ${promo.dealHighlight ? `${promo.dealHighlight} ` : ''}${promo.title}. ${promo.note}`,
       alt: promo.alt,
     })),

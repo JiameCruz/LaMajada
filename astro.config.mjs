@@ -1,9 +1,23 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
   adapter: vercel(),
+  env: {
+    schema: {
+      PUBLIC_SUPABASE_URL: envField.string({
+        context: 'server',
+        access: 'public',
+        optional: true,
+      }),
+      PUBLIC_SUPABASE_ANON_KEY: envField.string({
+        context: 'server',
+        access: 'public',
+        optional: true,
+      }),
+    },
+  },
 });

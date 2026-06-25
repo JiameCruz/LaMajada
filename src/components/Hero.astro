@@ -1,7 +1,12 @@
+---
+import { resolveImageSrc } from '../lib/images';
+
+const heroImage = resolveImageSrc('/Image/Hero Image.webp');
+---
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero-media" aria-hidden="true">
     <img
-      src="/Image/Hero%20Image.webp"
+      src={heroImage}
       alt="La Majada — ambiente del restaurante en Torreón"
       width="2400"
       height="1600"
