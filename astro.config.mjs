@@ -11,12 +11,10 @@ export default defineConfig({
       PUBLIC_SUPABASE_URL: envField.string({
         context: 'server',
         access: 'public',
-        optional: true,
       }),
       PUBLIC_SUPABASE_ANON_KEY: envField.string({
         context: 'server',
         access: 'public',
-        optional: true,
       }),
     },
   },

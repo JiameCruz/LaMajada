@@ -4,7 +4,9 @@ import type { Database } from './types';
 import { getSupabaseAnonKey, getSupabaseUrl } from './env';
 
 export function createSupabaseServerClient(cookies: AstroCookies) {
-  return createServerClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
+  return createServerClient<Database>(url, key, {
     cookies: {
       get(key: string) {
         return cookies.get(key)?.value;
